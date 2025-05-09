@@ -1,0 +1,234 @@
+---
+- name: Unistall PostgreSQL
+  hosts: database
+  become: true
+  become_user: root
+  tasks:
+    - name: Stop PostgreSQL service
+      ansible.builtin.command:
+        cmd: systemctl stop postgresql
+
+    - name: disable PostgreSQL service
+      ansible.builtin.command:
+        cmd: dnf -y module disable postgresql
+ 
+    - name: Remove PostgreSQL packages
+      ansible.builtin.dnf:
+        name:
+          - postgresql*
+          - postgresql-server*
+          - postgresql-contrib*
+          - postgresql-devel*
+          - postgresql-libs*
+          - postgresql-docs*
+        state: absent
+        update_cache: yes
+
+    - name: Remove PostgreSQL directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/pgsql
+        - /var/lib/ansible-automation-platform-bundle
+    
+    - name: remove users and groups
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - postgres
+
+#Uninstall AAP controller
+- name: Remove AAP controller
+  hosts: automationcontroller
+  become: true
+  become_user: root
+  tasks:
+    - name: Stop AAP services
+      ansible.builtin.command:
+        cmd: automation-controller-service stop
+
+    - name: Remove controller packages
+      ansible.builtin.dnf:
+        name:
+          - automation*
+          - redis*
+          - receptor*
+          - postgresql*
+          - nginx*
+        state: absent
+        update_cache: yes
+
+    - name: remove directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/nginx
+        - /etc/tower
+        - /etc/receptor
+        - /etc/supervisor
+        - /etc/redis
+        - /etc/ansible-automation-platform
+        - /var/lib/nginx
+        - /var/lib/pgsql
+        - /var/lib/awx
+        - /var/lib/receptor
+        - /var/lib/redis
+        - /var/lib/ansible-automation-platform-bundle
+        - /var/lib/ansible-automation-platform
+        
+    - name: remove users and groups
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - awx
+        - nginx
+        - receptor
+        - redis
+
+# Uninstall AAP EDA
+- name: Uninstall EDA
+  hosts: automationedacontroller
+  become: true
+  become_user: root
+  tasks:
+    - name: Stop EDA services
+      ansible.builtin.command:
+        cmd: "{{ item }}"
+      loop:
+        - automation-eda-controller-service stop
+        # - automation-eda-controller-event-service stop
+
+    - name: Remove EDA packages
+      ansible.builtin.dnf:
+        name:
+          - automation*
+          - redis*
+          - receptor*
+          - postgresql*
+          - nginx*
+          - ansible-automation-platform*
+        state: absent
+        update_cache: yes
+    
+    - name: remove directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/nginx
+        - /etc/receptor
+        - /etc/supervisor
+        - /etc/redis
+        - /etc/ansible-automation-platform
+        - /var/lib/nginx
+        - /var/lib/pgsql
+        - /var/lib/awx
+        - /var/lib/receptor
+        - /var/lib/redis
+        - /var/lib/ansible-automation-platform-bundle
+        - /var/lib/ansible-automation-platform
+
+    - name: remove users and groups
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - nginx
+        - eda
+        - redis
+
+# Uninstall AAP HUB
+- name: Uninstall Private Automation Hub
+  hosts: automationhub
+  become: true
+  become_user: root
+  tasks:
+    - name: Stop Private Automation Hub services
+      ansible.builtin.command:
+        cmd: "{{ item }}"
+      loop:
+        - systemctl stop pulpcore
+
+    - name: Remove Private Automation Hub packages
+      ansible.builtin.dnf:
+        name:
+          - pulp*
+          - redis*
+          - automation-hub*
+          - ansible-automation-platform*
+          - pulpcore*
+        state: absent
+        update_cache: yes
+
+    - name: Remove directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/redis
+        - /var/lib/pulp
+        - /var/lib/ansible-automation-platform-bundle
+        - /etc/ansible-automation-platform
+        - /etc/redis
+        - /etc/nginx
+        - /etc/pulp
+        - /var/lib/nginx
+  
+    - name: remove users and groups
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - pulp
+        - nginx
+        - redis
+
+# Uninstall AAP Gateway
+- name: Uninstall AAP Gateway
+  hosts: gateway
+  become: true
+  become_user: root
+  tasks:
+    - name: Stop AAP Gateway services
+      ansible.builtin.command:
+        cmd: "{{ item }}"
+      loop:
+        - automation-gateway-service stop
+
+    - name: Remove AAP Gateway packages
+      ansible.builtin.dnf:
+        name:
+          - automation-gateway*
+          - ansible-automation-platform*
+          - redis*
+          - receptor*
+          - postgresql*
+          - nginx*
+        state: absent
+        update_cache: yes
+
+    - name: Remove directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/nginx
+        - /var/lib/ansible-automation-platform-bundle
+        - /var/lib/ansible-automation-platform
+        - /var/lib/redis
+        - /etc/nginx
+        - /etc/ansible-automation-platform
+        - /etc/redis
+
+    - name: remove users and groups
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - gateway
+        - nginx
+        - redis
