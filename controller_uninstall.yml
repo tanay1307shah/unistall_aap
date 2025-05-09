@@ -10,15 +10,14 @@
 
     - name: Remove controller packages
       ansible.builtin.dnf:
-        name: "{{ item }}"
+        name:
+          - automation*
+          - redis*
+          - receptor*
+          - postgresql*
+          - nginx*
         state: absent
         update_cache: yes
-      loop:
-        - automation*
-        - redis*
-        - receptor*
-        - postgresql*
-        - nginx*
 
     - name: remove directories
       ansible.builtin.file:
