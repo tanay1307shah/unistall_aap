@@ -1,0 +1,50 @@
+---
+- name: Remove AAP controller
+  hosts: automationcontroller
+  become: true
+  become_user: root
+  tasks:
+    - name: Stop AAP services
+      ansible.builtin.command:
+        cmd: automation-controller-service stop
+
+    - name: Remove controller packages
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: absent
+        update_cache: yes
+      loop:
+        - automation*
+        - redis*
+        - receptor*
+        - postgresql*
+        - nginx*
+
+    - name: remove directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/nginx
+        - /etc/tower
+        - /etc/receptor
+        - /etc/supervisor
+        - /etc/redis
+        - /etc/ansible-automation-platform
+        - /var/lib/nginx
+        - /var/lib/pgsql
+        - /var/lib/awx
+        - /var/lib/receptor
+        - /var/lib/redis
+        - /var/lib/ansible-automation-platform-bundle
+        - /var/lib/ansible-automation-platform
+        
+    - name: remove users and groups
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - awx
+        - nginx
+        - receptor
+        - redis

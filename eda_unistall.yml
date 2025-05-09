@@ -1,0 +1,52 @@
+---
+- name: Uninstall EDA
+  hosts: automationedacontroller
+  become: true
+  become_user: root
+  tasks:
+    - name: Stop EDA services
+      ansible.builtin.command:
+        cmd: "{{ item }}"
+      loop:
+        - automation-eda-controller-service stop
+        # - automation-eda-controller-event-service stop
+
+    - name: Remove EDA packages
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: absent
+        update_cache: yes
+      loop:
+        - automation*
+        - redis*
+        - receptor*
+        - postgresql*
+        - nginx*
+        - ansible-automation-platform*
+
+    - name: remove directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/nginx
+        - /etc/receptor
+        - /etc/supervisor
+        - /etc/redis
+        - /etc/ansible-automation-platform
+        - /var/lib/nginx
+        - /var/lib/pgsql
+        - /var/lib/awx
+        - /var/lib/receptor
+        - /var/lib/redis
+        - /var/lib/ansible-automation-platform-bundle
+        - /var/lib/ansible-automation-platform
+
+    - name: remove users and groups
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - nginx
+        - eda
+        - redis

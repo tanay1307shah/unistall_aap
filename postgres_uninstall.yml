@@ -1,0 +1,41 @@
+---
+- name: Unistall PostgreSQL
+  hosts: database
+  become: true
+  become_user: root
+  tasks:
+    - name: Stop PostgreSQL service
+      ansible.builtin.command:
+        cmd: systemctl stop postgresql
+
+    - name: disable PostgreSQL service
+      ansible.builtin.command:
+        cmd: dnf -y module disable postgresql
+ 
+    - name: Remove PostgreSQL packages
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: absent
+        update_cache: yes
+      loop:
+        - postgresql*
+        - postgresql-server*
+        - postgresql-contrib*
+        - postgresql-devel*
+        - postgresql-libs*
+        - postgresql-docs*
+
+    - name: Remove PostgreSQL directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/pgsql
+        - /var/lib/ansible-automation-platform-bundle
+    
+    - name: remove users and groups
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - postgres

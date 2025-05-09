@@ -1,0 +1,46 @@
+---
+- name: Uninstall Private Automation Hub
+  hosts: automationhub
+  become: true
+  become_user: root
+  tasks:
+    - name: Stop Private Automation Hub services
+      ansible.builtin.command:
+        cmd: "{{ item }}"
+      loop:
+        - systemctl stop pulpcore
+
+    - name: Remove Private Automation Hub packages
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: absent
+        update_cache: yes
+      loop:
+        - pulp*
+        - redis*
+        - automation-hub*
+        - ansible-automation-platform*
+        - pulpcore*
+
+    - name: Remove directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/redis
+        - /var/lib/pulp
+        - /var/lib/ansible-automation-platform-bundle
+        - /etc/ansible-automation-platform
+        - /etc/redis
+        - /etc/nginx
+        - /etc/pulp
+        - /var/lib/nginx
+  
+    - name: remove users and groups
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - pulp
+        - nginx
+        - redis

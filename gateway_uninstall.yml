@@ -1,0 +1,46 @@
+---
+- name: Uninstall AAP Gateway
+  hosts: gateway
+  become: true
+  become_user: root
+  tasks:
+    - name: Stop AAP Gateway services
+      ansible.builtin.command:
+        cmd: "{{ item }}"
+      loop:
+        - automation-gateway-service stop
+
+    - name: Remove AAP Gateway packages
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: absent
+        update_cache: yes
+      loop:
+        - automation-gateway*
+        - ansible-automation-platform*
+        - redis*
+        - receptor*
+        - postgresql*
+        - nginx*
+
+    - name: Remove directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/nginx
+        - /var/lib/ansible-automation-platform-bundle
+        - /var/lib/ansible-automation-platform
+        - /var/lib/redis
+        - /etc/nginx
+        - /etc/ansible-automation-platform
+        - /etc/redis
+
+    - name: remove users and groups
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - gateway
+        - nginx
+        - redis
